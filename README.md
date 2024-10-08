@@ -28,14 +28,8 @@ For Linux
 # requires: curl unzip
 # ~
 curl -L -o \ 
-ghpm.gz \
-"https://github.com/Neal-C/ghpm/releases/download/v0.1.0-rc/ghpm-linux-amd64.zip"
-```
-
-unzip file  
-```bash
-# ~
-gunzip ghpm.gz
+ghpm \
+"https://github.com/Neal-C/ghpm/releases/download/v0.1.0-rc/ghpm-linux-amd64"
 ```
 
 give ghpm executable permissions  

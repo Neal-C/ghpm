@@ -1,13 +1,10 @@
 #! usr/bin/env bash
 
-# requires: curl unzip
+# requires: curl
 # may require sudo
 
 # ~
-curl -L -o ghpm.gz  https://github.com/Neal-C/ghpm/releases/download/v0.1.0-rc/ghpm-linux-amd64.zip
-
-# ~
-gunzip ghpm.gz
+curl -L -o ghpm https://github.com/Neal-C/ghpm/releases/download/v0.1.0-rc/ghpm-linux-amd64
 
 # ~
 chmod +x ghpm
