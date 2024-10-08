@@ -1,0 +1,51 @@
+name: Release::ghpm
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  ghpm_build:
+    permissions:
+      # for  creating release & modifying version in-place & pushing tags
+      contents: write 
+    runs-on: 'ubuntu-latest'
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
+    steps:
+      - name: 'clone code into github runner'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 'Setup Go' 
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23
+
+      - name: 'Install dependencies'
+        run: go mod download
+
+      - name: 'Set Binary Name'
+        run: |
+          BINARY_NAME=${{ github.repository }}-${{ matrix.goos }}-${{ matrix.goarch }}
+
+          echo "BINARY_NAME=$BINARY_NAME" >> $GITHUB_ENV
+
+      - name: 'Release build'
+        run: |
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o ${{ env.BINARY_NAME }} ./cmd/ghpm/main.go
+
+
+      - name: 'gituhub release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.BINARY_NAME }}
+          make_latest: true
+          generate_release_notes: true
+          token: ${{ env.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

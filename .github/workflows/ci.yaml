@@ -1,0 +1,31 @@
+name: CI::ghpm
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+
+jobs:
+  ghpm_build:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'clone code into github runner'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 'Setup Go' 
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23
+
+      - name: 'Install dependencies'
+        run: go mod download
+
+      - name: 'Build'
+        run: go build -v -o ./bin/ghpm ./cmd/ghpm/main.go
+        
+      - name: 'Test with the Go CLI'
+        run: go test ./... -v -cover
