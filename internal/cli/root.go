@@ -7,17 +7,19 @@ import (
 )
 
 var (
-	version string
+	version bool
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "ghpm",
 	Short: "ghpm is tool to manage privacy on github.",
-	Args: cobra.ExactArgs(0),
-	Long: `ghpm is tool to manage privacy on github. And quickly switch all repository to private.`,
+	Args:  cobra.ExactArgs(0),
+	Long:  `ghpm is tool to manage privacy on github. And quickly switch all repository to private.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if version != "" {
-			return versionCmd.Execute()
+
+		if version {
+			versionCmd.Run(nil, nil)
+			return nil
 		}
 
 		fmt.Println("Made with 💞 love 💞 for developers by a developer ❤️")
@@ -31,5 +33,5 @@ func Execute() error {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&version, "version", "v", "", "prints the version")
+	rootCmd.Flags().BoolVarP(&version, "version", "v", false, "prints the version")
 }
