@@ -20,16 +20,16 @@
 with go ( golang)
 
 ```bash
-go install github.com/Neal-C/ghpm@latest
+go install github.com/Neal-C/ghpm/cmd/ghpm@latest
 ```
 
 For Linux   
 ```bash
-# requires: curl unzip
+# requires: curl
 # ~
 curl -L -o \ 
 ghpm \
-"https://github.com/Neal-C/ghpm/releases/download/v0.1.0-rc/ghpm-linux-amd64"
+"https://github.com/Neal-C/ghpm/releases/download/latest/ghpm-linux-amd64"
 ```
 
 give ghpm executable permissions  
