@@ -48,12 +48,13 @@ move to /usr/local/bin
 ```bash
 # ~
 # might require to be prefixed with sudo: sudo mv ghpm usr/local/bin/
-mv ghpm usr/local/bin/
+mv ghpm /usr/local/bin/
 ```
 
 Uninstall :  
 ```bash
-rm -rf usr/local/bin/ghpm
+# might require to be prefixed with sudo: sudo rm -rf /usr/local/bin/ghpm
+rm -rf /usr/local/bin/ghpm
 ```
 
 ## Usage

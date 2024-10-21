@@ -11,4 +11,4 @@ chmod +x ghpm
 
 # ~
 # might require to be prefixed with sudo
-sudo mv ghpm usr/local/bin/
+sudo mv ghpm /usr/local/bin/
