@@ -23,6 +23,12 @@ with go ( golang)
 go install github.com/Neal-C/ghpm/cmd/ghpm@latest
 ```
 
+One liner install command :
+
+```bash
+curl -s "https://raw.githubusercontent.com/Neal-C/ghpm/main/docs/install.sh" | bash
+```
+
 For Linux   
 ```bash
 # requires: curl
@@ -41,14 +47,8 @@ chmod +x ghpm
 move to /usr/local/bin  
 ```bash
 # ~
-# might require to be prefixed with sudo: sudo mv ghpm usr/local/bin/ghpm
-mv ghpm usr/local/bin/ghpm
-```
-
-One liner install command :
-
-```bash
-curl -s "https://raw.githubusercontent.com/Neal-C/ghpm/main/docs/install.sh" | bash
+# might require to be prefixed with sudo: sudo mv ghpm usr/local/bin/
+mv ghpm usr/local/bin/
 ```
 
 Uninstall :  
@@ -59,6 +59,7 @@ rm -rf usr/local/bin/ghpm
 ## Usage
 
 ```bash
+# prints help message
 ghpm --help
 ```
 
@@ -99,7 +100,6 @@ I am open to random pull requests that do at least 1 of the following :
 - add tooling
 - add tests
 - add/improve documentation
-- add examples
 - improve CI/CD
 
 
