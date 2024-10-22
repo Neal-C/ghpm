@@ -4,7 +4,7 @@
 # may require sudo
 
 # ~
-curl -L -o ghpm https://github.com/Neal-C/ghpm/releases/download/v0.1.2-rc/ghpm-linux-amd64
+curl -L -o ghpm https://github.com/Neal-C/ghpm/releases/latest/download/ghpm-linux-amd64
 
 # ~
 chmod +x ghpm

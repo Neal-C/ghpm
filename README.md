@@ -35,7 +35,7 @@ For Linux/amd64 and Linux/x86_64
 ```bash
 # requires: curl
 # ~
-curl -L -o ghpm "https://github.com/Neal-C/ghpm/releases/download/v0.1.2-rc/ghpm-linux-amd64"
+curl -L -o ghpm https://github.com/Neal-C/ghpm/releases/latest/download/ghpm-linux-amd64
 ```
 
 give ghpm executable permissions  

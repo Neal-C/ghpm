@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - "v*.*.*"
-      - latest
 
 jobs:
   ghpm_build:
