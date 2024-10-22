@@ -29,13 +29,13 @@ One liner install command :
 curl -s "https://raw.githubusercontent.com/Neal-C/ghpm/main/docs/install.sh" | bash
 ```
 
-For Linux   
+Manual install  
+
+For Linux/amd64 and Linux/x86_64   
 ```bash
 # requires: curl
 # ~
-curl -L -o \ 
-ghpm \
-"https://github.com/Neal-C/ghpm/releases/download/latest/ghpm-linux-amd64"
+curl -L -o ghpm "https://github.com/Neal-C/ghpm/releases/download/latest/ghpm-linux-amd64"
 ```
 
 give ghpm executable permissions  
@@ -44,17 +44,18 @@ give ghpm executable permissions
 chmod +x ghpm
 ```
 
-move to /usr/local/bin  
+move to /usr/local/bin/  
 ```bash
 # ~
-# might require to be prefixed with sudo: sudo mv ghpm usr/local/bin/
+# might require to be prefixed with sudo: sudo mv ghpm /usr/local/bin/
 mv ghpm /usr/local/bin/
 ```
 
 Uninstall :  
 ```bash
-# might require to be prefixed with sudo: sudo rm -rf /usr/local/bin/ghpm
-rm -rf /usr/local/bin/ghpm
+# ~
+# might require to be prefixed with sudo: sudo rm /usr/local/bin/ghpm
+rm /usr/local/bin/ghpm
 ```
 
 ## Usage
