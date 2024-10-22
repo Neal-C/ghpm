@@ -10,7 +10,7 @@ import (
 )
 
 // STARS_THRESHOLD : the required numbers of stars on a repository for it be avoided by ghpm
-const STARS_THRESHOLD uint = 4
+const STARS_THRESHOLD uint = 1
 
 type GithubPrivacyManager struct {
 	// token that allows requesting github on behalf of the user

@@ -4,7 +4,7 @@
 > Turning a starred repository into a private repository will lose all the stars
 
 > [!IMPORTANT]
-> if it has >= 4 stars, ghpm does not turn a starred repository into a private repository.  
+> if it has >= 1 stars, ghpm does not turn a starred repository into a private repository.  
 > It does not turn your README repository (username/username) private because it's a special repository meant for public display
 
 > [!NOTE]
@@ -80,7 +80,7 @@ ghpm thanos_snap
 
 - [x] list your public repos
 
-- [x] switch every repositories to private (excluding repos with >= 4 stars)
+- [x] switch every repositories to private (excluding repos with >= 1 stars)
 
 - [x] switch 1 repository to private
 
@@ -91,8 +91,6 @@ ghpm thanos_snap
 if time and will :
 
 - [ ] persist auth to allow multiple successive commands
-
-- [ ] have other exclude/include flags than stars
 
 ## Contributing
 
