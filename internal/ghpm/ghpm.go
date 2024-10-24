@@ -113,19 +113,19 @@ func (self *GithubPrivacyManager) ListAllPublicRepositories(ctx context.Context)
 		return fmt.Errorf("github is likely down. Retry. If it does persist: Please complain to the developer")
 	}
 
-	var privateRepositories []GithubRepository
+	var publicRepositories []GithubRepository
 
-	if err := json.NewDecoder(httpResponse.Body).Decode(&privateRepositories); err != nil {
+	if err := json.NewDecoder(httpResponse.Body).Decode(&publicRepositories); err != nil {
 		return err
 	}
 
-	namesOfPrivateRepositories := [100]string{}
+	var namesOfPublicRepositories []string
 
-	for index, repo := range privateRepositories {
-		namesOfPrivateRepositories[index] = repo.Fullname
+	for _, repo := range publicRepositories {
+		namesOfPublicRepositories= append(namesOfPublicRepositories, repo.Fullname)
 	}
 
-	names, err := Prettyfy(namesOfPrivateRepositories)
+	names, err := Prettyfy(namesOfPublicRepositories)
 
 	if err != nil {
 		return err
@@ -166,10 +166,10 @@ func (self *GithubPrivacyManager) ListAllPrivateRepositories(ctx context.Context
 		return err
 	}
 
-	namesOfPrivateRepositories := [100]string{}
+	var namesOfPrivateRepositories []string
 
-	for index, repo := range privateRepositories {
-		namesOfPrivateRepositories[index] = repo.Fullname
+	for _, repo := range privateRepositories {
+		namesOfPrivateRepositories = append(namesOfPrivateRepositories, repo.Fullname)
 	}
 
 	names, err := Prettyfy(namesOfPrivateRepositories)
@@ -329,8 +329,6 @@ run:
 		return err
 	}
 
-	defer httpResponse.Body.Close()
-
 	if httpResponse.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("%d : not found. Please complain to the developer", http.StatusNotFound)
 	}
@@ -345,6 +343,8 @@ run:
 		return err
 	}
 
+	httpResponse.Body.Close()
+
 	payload := map[string]any{
 		"private": true,
 	}
@@ -353,7 +353,9 @@ run:
 	for _, repo := range publicRepositories {
 
 		if repo.Stars >= STARS_THRESHOLD {
-			log.Printf("repository %s cannot be switched to private by ghpm because it has more than %d stars \n", repo.Fullname, STARS_THRESHOLD)
+
+			log.Printf("repository %s cannot be switched to private by ghpm because it has more than %d stars -> (%d) \n", repo.Fullname, STARS_THRESHOLD, repo.Stars)
+
 			continue
 		}
 
@@ -365,7 +367,14 @@ run:
 
 		currentPublicRepositoryEndpoint := fmt.Sprintf("https://api.github.com/repos/%s", repo.Fullname)
 
-		jsonPayload, _ := json.Marshal(payload)
+		jsonPayload, err := json.Marshal(payload)
+
+		if err != nil {
+
+			log.Printf("error processing %s; err=%s", repo.Fullname, err)
+
+			continue
+		}
 
 		httpPatchRequest, _ := http.NewRequestWithContext(ctx, http.MethodPatch, currentPublicRepositoryEndpoint, bytes.NewBuffer(jsonPayload))
 
@@ -374,17 +383,24 @@ run:
 		httpResponse, err := self.httpClient.Do(httpPatchRequest)
 
 		if err != nil {
+
+			log.Printf("error processing %s; err=%s", repo.Fullname, err)
+
 			continue
 		}
 
 		switch httpResponse.StatusCode {
 		case http.StatusNotImplemented, http.StatusNotFound:
+
 			log.Printf("%s was not switched to private. I suggest to you try from the web version for this one. I am sorry for failing you, please complain to the developer \n", repo.Fullname)
+
+			httpResponse.Body.Close()
 
 			continue
 		}
 
 		if httpResponse.StatusCode >= 500 {
+
 			log.Printf("github is likely down. Retry. If it does persist: Please complain to the developer \n")
 
 			httpResponse.Body.Close()
@@ -393,6 +409,8 @@ run:
 		}
 
 		log.Printf("%s switched to private. \n", repo.Fullname)
+
+		httpResponse.Body.Close()
 
 	}
 
