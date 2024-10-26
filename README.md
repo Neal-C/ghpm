@@ -11,6 +11,9 @@
 > [!NOTE]
 > I am not sponsored by github, nor affiliated, but you can change that by pinging them on social media
 
+> [!NOTE]
+> Also exists as github cli extension : https://github.com/Neal-C/gh-ghpm
+
 ## Requirements 
 
 - Go >= 1.23 for go install and contributing
@@ -24,7 +27,7 @@ with go ( golang)
 go install github.com/Neal-C/ghpm/cmd/ghpm@latest
 ```
 
-One liner install command :
+One liner install command (Linux/amd64 & Linux/x86_64) :
 
 ```bash
 curl -s "https://raw.githubusercontent.com/Neal-C/ghpm/main/docs/install.sh" | bash
