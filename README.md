@@ -2,6 +2,7 @@
 
 > [!WARNING]
 > Turning a starred repository into a private repository will lose all the stars
+> Current forks will remain public and will be detached from the repository.
 
 > [!IMPORTANT]
 > if it has >= 1 stars, ghpm does not turn a starred repository into a private repository.  

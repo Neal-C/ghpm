@@ -122,7 +122,7 @@ func (self *GithubPrivacyManager) ListAllPublicRepositories(ctx context.Context)
 	var namesOfPublicRepositories []string
 
 	for _, repo := range publicRepositories {
-		namesOfPublicRepositories= append(namesOfPublicRepositories, repo.Fullname)
+		namesOfPublicRepositories = append(namesOfPublicRepositories, repo.Fullname)
 	}
 
 	names, err := Prettyfy(namesOfPublicRepositories)
@@ -309,115 +309,114 @@ func (self *GithubPrivacyManager) SwitchRepoToPublicByName(ctx context.Context, 
 
 func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Context) error {
 
-	var shouldRunAgain bool
-
-run:
+	shouldRun := true
 
 	publicRepositoriesGithubAPIEndpoint := fmt.Sprintf("https://api.github.com/users/%s/repos?visibility=public&per_page=100", self.username)
+	
+	for shouldRun {
 
-	publicRepositoriesHTTPRequest, err := http.NewRequestWithContext(ctx, http.MethodGet, publicRepositoriesGithubAPIEndpoint, http.NoBody)
 
-	if err != nil {
-		return err
-	}
-
-	self.setRequiredHeadersOnGithubRequest(publicRepositoriesHTTPRequest)
-
-	httpResponse, err := self.httpClient.Do(publicRepositoriesHTTPRequest)
-
-	if err != nil {
-		return err
-	}
-
-	if httpResponse.StatusCode == http.StatusNotFound {
-		return fmt.Errorf("%d : not found. Please complain to the developer", http.StatusNotFound)
-	}
-
-	if httpResponse.StatusCode >= 500 {
-		return fmt.Errorf("github is likely down. Retry. If it does persist: Please complain to the developer")
-	}
-
-	var publicRepositories []GithubRepository
-
-	if err := json.NewDecoder(httpResponse.Body).Decode(&publicRepositories); err != nil {
-		return err
-	}
-
-	httpResponse.Body.Close()
-
-	payload := map[string]any{
-		"private": true,
-	}
-
-	// TODO : lobby github for a batch request endpoint, so that it can be only 1 HTTP call and not O(n) HTTP calls
-	for _, repo := range publicRepositories {
-
-		if repo.Stars >= STARS_THRESHOLD {
-
-			log.Printf("repository %s cannot be switched to private by ghpm because it has more than %d stars -> (%d) \n", repo.Fullname, STARS_THRESHOLD, repo.Stars)
-
-			continue
-		}
-
-		readmeRepository := fmt.Sprintf("%s/%s", self.username, self.username)
-
-		if repo.Fullname == readmeRepository {
-			continue
-		}
-
-		currentPublicRepositoryEndpoint := fmt.Sprintf("https://api.github.com/repos/%s", repo.Fullname)
-
-		jsonPayload, err := json.Marshal(payload)
+		publicRepositoriesHTTPRequest, err := http.NewRequestWithContext(ctx, http.MethodGet, publicRepositoriesGithubAPIEndpoint, http.NoBody)
 
 		if err != nil {
-
-			log.Printf("error processing %s; err=%s", repo.Fullname, err)
-
-			continue
+			return err
 		}
 
-		httpPatchRequest, _ := http.NewRequestWithContext(ctx, http.MethodPatch, currentPublicRepositoryEndpoint, bytes.NewBuffer(jsonPayload))
+		self.setRequiredHeadersOnGithubRequest(publicRepositoriesHTTPRequest)
 
-		self.setRequiredHeadersOnGithubRequest(httpPatchRequest)
-
-		httpResponse, err := self.httpClient.Do(httpPatchRequest)
+		httpResponse, err := self.httpClient.Do(publicRepositoriesHTTPRequest)
 
 		if err != nil {
-
-			log.Printf("error processing %s; err=%s", repo.Fullname, err)
-
-			continue
+			return err
 		}
 
-		switch httpResponse.StatusCode {
-		case http.StatusNotImplemented, http.StatusNotFound:
-
-			log.Printf("%s was not switched to private. I suggest to you try from the web version for this one. I am sorry for failing you, please complain to the developer \n", repo.Fullname)
-
-			httpResponse.Body.Close()
-
-			continue
+		if httpResponse.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("%d : not found. Please complain to the developer", http.StatusNotFound)
 		}
 
 		if httpResponse.StatusCode >= 500 {
-
-			log.Printf("github is likely down. Retry. If it does persist: Please complain to the developer \n")
-
-			httpResponse.Body.Close()
-
-			continue
+			return fmt.Errorf("github is likely down. Retry. If it does persist: Please complain to the developer")
 		}
 
-		log.Printf("%s switched to private. \n", repo.Fullname)
+		var publicRepositories []GithubRepository
+
+		if err := json.NewDecoder(httpResponse.Body).Decode(&publicRepositories); err != nil {
+			return err
+		}
 
 		httpResponse.Body.Close()
 
-	}
+		payload := map[string]any{
+			"private": true,
+		}
 
-	shouldRunAgain = len(publicRepositories) == 100
+		// TODO : lobby github for a batch request endpoint, so that it can be only 1 HTTP call and not O(n) HTTP calls
+		for _, repo := range publicRepositories {
 
-	if shouldRunAgain {
-		goto run
+			if repo.Stars >= STARS_THRESHOLD {
+
+				log.Printf("repository %s cannot be switched to private by ghpm because it has more than %d stars -> (%d) \n", repo.Fullname, STARS_THRESHOLD, repo.Stars)
+
+				continue
+			}
+
+			readmeRepository := fmt.Sprintf("%s/%s", self.username, self.username)
+
+			if repo.Fullname == readmeRepository {
+				continue
+			}
+
+			currentPublicRepositoryEndpoint := fmt.Sprintf("https://api.github.com/repos/%s", repo.Fullname)
+
+			jsonPayload, err := json.Marshal(payload)
+
+			if err != nil {
+
+				log.Printf("error processing %s; err=%s", repo.Fullname, err)
+
+				continue
+			}
+
+			httpPatchRequest, _ := http.NewRequestWithContext(ctx, http.MethodPatch, currentPublicRepositoryEndpoint, bytes.NewBuffer(jsonPayload))
+
+			self.setRequiredHeadersOnGithubRequest(httpPatchRequest)
+
+			httpResponse, err := self.httpClient.Do(httpPatchRequest)
+
+			if err != nil {
+
+				log.Printf("error processing %s; err=%s", repo.Fullname, err)
+
+				continue
+			}
+
+			switch httpResponse.StatusCode {
+			case http.StatusNotImplemented, http.StatusNotFound:
+
+				log.Printf("%s was not switched to private. I suggest to you try from the web version for this one. I am sorry for failing you, please complain to the developer \n", repo.Fullname)
+
+				httpResponse.Body.Close()
+
+				continue
+			}
+
+			if httpResponse.StatusCode >= 500 {
+
+				log.Printf("github is likely down. Retry. If it does persist: Please complain to the developer \n")
+
+				httpResponse.Body.Close()
+
+				continue
+			}
+
+			log.Printf("%s switched to private. \n", repo.Fullname)
+
+			httpResponse.Body.Close()
+
+		}
+
+		shouldRun = len(publicRepositories) == 100
+
 	}
 
 	return nil
