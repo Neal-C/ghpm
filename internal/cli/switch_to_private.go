@@ -17,7 +17,7 @@ var switchToPrivateCmd = &cobra.Command{
 	Long: heredoc.Docf(`
 		Switch your public repository to private by name.
 
-		By default, starred repositories with 4 will be made private.
+		By default, starred repositories with 1 stars will not be made private.
 
 		Starts interactive setup and does a HTTP request to turn your repository private.
 	`, "`"),
