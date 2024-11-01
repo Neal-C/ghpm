@@ -119,7 +119,7 @@ func (self *GithubPrivacyManager) ListAllPublicRepositories(ctx context.Context)
 		return err
 	}
 
-	var namesOfPublicRepositories []string
+	var namesOfPublicRepositories = make([]string, 0, 100)
 
 	for _, repo := range publicRepositories {
 		namesOfPublicRepositories = append(namesOfPublicRepositories, repo.Fullname)
@@ -166,7 +166,7 @@ func (self *GithubPrivacyManager) ListAllPrivateRepositories(ctx context.Context
 		return err
 	}
 
-	var namesOfPrivateRepositories []string
+	var namesOfPrivateRepositories = make([]string, 0, 100)
 
 	for _, repo := range privateRepositories {
 		namesOfPrivateRepositories = append(namesOfPrivateRepositories, repo.Fullname)
