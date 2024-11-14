@@ -1,3 +1,4 @@
+// package for everything related to configuration
 package config
 
 var (

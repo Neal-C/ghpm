@@ -1,3 +1,4 @@
+// package for everything related to Github Privacy Management
 package ghpm
 
 import (
@@ -5,8 +6,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"iter"
 	"log"
 	"net/http"
+	"slices"
 )
 
 // STARS_THRESHOLD : the required numbers of stars on a repository for it be avoided by ghpm
@@ -39,6 +42,14 @@ func Prettyfy(data any) (string, error) {
 		return "", err
 	}
 	return string(val), nil
+}
+
+func ToFullname(repositories []GithubRepository) iter.Seq[string] {
+	return func(yield func(string) bool) {
+		for _, repo := range repositories {
+			yield(repo.Fullname)
+		}
+	}
 }
 
 func NewGithubPrivacyManager(githubAuthToken string, httpClient *http.Client) GithubPrivacyManager {
@@ -105,12 +116,15 @@ func (self *GithubPrivacyManager) ListAllPublicRepositories(ctx context.Context)
 
 	defer httpResponse.Body.Close()
 
-	if httpResponse.StatusCode == http.StatusNotFound {
-		return fmt.Errorf("%d : not found. Please complain to the developer", http.StatusNotFound)
-	}
+	switch {
+	case httpResponse.StatusCode == http.StatusNotFound:
 
-	if httpResponse.StatusCode >= 500 {
+		return fmt.Errorf("%d : not found. Please complain to the developer", http.StatusNotFound)
+
+	case httpResponse.StatusCode >= 500:
+
 		return fmt.Errorf("github is likely down. Retry. If it does persist: Please complain to the developer")
+
 	}
 
 	var publicRepositories []GithubRepository
@@ -119,11 +133,13 @@ func (self *GithubPrivacyManager) ListAllPublicRepositories(ctx context.Context)
 		return err
 	}
 
-	var namesOfPublicRepositories = make([]string, 0, 100)
+	// var namesOfPublicRepositories = make([]string, 0, 100)
 
-	for _, repo := range publicRepositories {
-		namesOfPublicRepositories = append(namesOfPublicRepositories, repo.Fullname)
-	}
+	// for _, repo := range publicRepositories {
+	// 	namesOfPublicRepositories = append(namesOfPublicRepositories, repo.Fullname)
+	// }
+
+	namesOfPublicRepositories := slices.Collect(ToFullname(publicRepositories))
 
 	names, err := Prettyfy(namesOfPublicRepositories)
 
@@ -152,11 +168,13 @@ func (self *GithubPrivacyManager) ListAllPrivateRepositories(ctx context.Context
 
 	defer httpResponse.Body.Close()
 
-	if httpResponse.StatusCode == http.StatusNotFound {
-		return fmt.Errorf("%d : not found. Please complain to the developer", http.StatusNotFound)
-	}
+	switch {
+	case httpResponse.StatusCode == http.StatusNotFound:
 
-	if httpResponse.StatusCode >= 500 {
+		return fmt.Errorf("%d : not found. Please complain to the developer", http.StatusNotFound)
+
+	case httpResponse.StatusCode >= 500:
+
 		return fmt.Errorf("github is likely down. Retry. If it does persist: Please complain to the developer")
 	}
 
@@ -166,11 +184,13 @@ func (self *GithubPrivacyManager) ListAllPrivateRepositories(ctx context.Context
 		return err
 	}
 
-	var namesOfPrivateRepositories = make([]string, 0, 100)
+	// var namesOfPrivateRepositories = make([]string, 0, 100)
 
-	for _, repo := range privateRepositories {
-		namesOfPrivateRepositories = append(namesOfPrivateRepositories, repo.Fullname)
-	}
+	// for _, repo := range privateRepositories {
+	// 	namesOfPrivateRepositories = append(namesOfPrivateRepositories, repo.Fullname)
+	// }
+
+	namesOfPrivateRepositories := slices.Collect(ToFullname(privateRepositories))
 
 	names, err := Prettyfy(namesOfPrivateRepositories)
 
@@ -191,7 +211,7 @@ func (self *GithubPrivacyManager) SwitchRepoToPrivateByName(ctx context.Context,
 	targetRepository := fmt.Sprintf("%s/%s", self.username, repositoryName)
 
 	if targetRepository == readmeRepository {
-		return fmt.Errorf("it makes no sense to make private your %s. \n Go through the web ui for that", readmeRepository)
+		return fmt.Errorf("it makes no sense to make private your %s.\nGo through the web ui for that", readmeRepository)
 	}
 
 	publicRepoEndpoint := fmt.Sprintf("https://api.github.com/repos/%s", targetRepository)
@@ -238,12 +258,14 @@ func (self *GithubPrivacyManager) SwitchRepoToPrivateByName(ctx context.Context,
 
 	defer httpResponse.Body.Close()
 
-	if httpResponse.StatusCode == http.StatusUnprocessableEntity {
-		return fmt.Errorf("repository %s was not switched to private. Consider using the web ui for this one", repositoryName)
-	}
+	switch {
+	case httpResponse.StatusCode == http.StatusUnprocessableEntity:
 
-	if httpResponse.StatusCode == http.StatusNotFound {
-		return fmt.Errorf("repository %s was not switched to private because it was not found", repositoryName)
+		return fmt.Errorf("repository %s was not switched to private. Consider using the web ui for this one", repositoryName)
+
+	case httpResponse.StatusCode == http.StatusNotFound:
+
+		return fmt.Errorf("repository %s was not switched to private because it was not found. Did you misspell?", repositoryName)
 	}
 
 	return nil
@@ -257,7 +279,9 @@ func (self *GithubPrivacyManager) SwitchRepoToPublicByName(ctx context.Context, 
 	targetRepository := fmt.Sprintf("%s/%s", self.username, repositoryName)
 
 	if targetRepository == readmeRepository {
-		return fmt.Errorf("it makes no sense to make private your %s. It's your profile's README: it's meant to be read.\nGo through the web ui for that", readmeRepository)
+
+		return fmt.Errorf("it makes no sense to change your %s. It's your profile's README: it's meant to be read.\nGo through the web ui for that", readmeRepository)
+
 	}
 
 	privateRepositoryEndpoint := fmt.Sprintf("https://api.github.com/repos/%s", targetRepository)
@@ -289,19 +313,21 @@ func (self *GithubPrivacyManager) SwitchRepoToPublicByName(ctx context.Context, 
 		return err
 	}
 
-	if httpResponse.StatusCode == http.StatusUnprocessableEntity {
+	defer httpResponse.Body.Close()
+
+	switch {
+	case httpResponse.StatusCode == http.StatusUnprocessableEntity:
+
 		return fmt.Errorf("repository %s was not switched to public. Consider using the web ui for this one", repositoryName)
-	}
 
-	if httpResponse.StatusCode == http.StatusNotFound {
-		return fmt.Errorf("repository %s was not switched to public because it was not found", repositoryName)
-	}
+	case httpResponse.StatusCode == http.StatusNotFound:
 
-	if httpResponse.StatusCode >= 500 {
+		return fmt.Errorf("repository %s was not switched to public because it was not found. Did you misspell?", repositoryName)
+
+	case httpResponse.StatusCode >= 500:
+
 		return fmt.Errorf("github is likely down. Retry. If it does persist: Please complain to the developer")
 	}
-
-	defer httpResponse.Body.Close()
 
 	return nil
 
@@ -312,9 +338,8 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 	shouldRun := true
 
 	publicRepositoriesGithubAPIEndpoint := fmt.Sprintf("https://api.github.com/users/%s/repos?visibility=public&per_page=100", self.username)
-	
-	for shouldRun {
 
+	for shouldRun {
 
 		publicRepositoriesHTTPRequest, err := http.NewRequestWithContext(ctx, http.MethodGet, publicRepositoriesGithubAPIEndpoint, http.NoBody)
 
@@ -330,11 +355,13 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 			return err
 		}
 
-		if httpResponse.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("%d : not found. Please complain to the developer", http.StatusNotFound)
-		}
+		switch {
+		case httpResponse.StatusCode == http.StatusNotFound:
 
-		if httpResponse.StatusCode >= 500 {
+			return fmt.Errorf("%d : not found. Did you spell that right? that its name?", http.StatusNotFound)
+
+		case httpResponse.StatusCode >= 500:
+
 			return fmt.Errorf("github is likely down. Retry. If it does persist: Please complain to the developer")
 		}
 
@@ -390,17 +417,24 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 				continue
 			}
 
-			switch httpResponse.StatusCode {
-			case http.StatusNotImplemented, http.StatusNotFound:
+			switch {
+			case httpResponse.StatusCode == http.StatusNotImplemented:
 
 				log.Printf("%s was not switched to private. I suggest to you try from the web version for this one. I am sorry for failing you, please complain to the developer \n", repo.Fullname)
 
 				httpResponse.Body.Close()
 
 				continue
-			}
 
-			if httpResponse.StatusCode >= 500 {
+			case httpResponse.StatusCode == http.StatusNotFound:
+
+				log.Printf("%s was not found. Did you spell that right? that its name? \n", repo.Fullname)
+
+				httpResponse.Body.Close()
+
+				continue
+
+			case httpResponse.StatusCode >= 500:
 
 				log.Printf("github is likely down. Retry. If it does persist: Please complain to the developer \n")
 
