@@ -10,7 +10,7 @@ import (
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "login to github.",
-	Args: cobra.NoArgs,
+	Args:  cobra.NoArgs,
 	Long: heredoc.Docf(`
 		Authenticate with a GitHub host.
 

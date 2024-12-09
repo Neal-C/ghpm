@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"log"
 	"net/http"
 
@@ -39,13 +38,13 @@ var switchToPrivateCmd = &cobra.Command{
 
 		name := args[0]
 
-		err = ghPrivacyManager.SwitchRepoToPrivateByName(context.Background(), name)
+		err = ghPrivacyManager.SwitchRepoToPrivateByName(cmd.Context(), name)
 
 		if err != nil {
 			return err
 		}
 
-		log.Printf("success. %s was made private",name)
+		log.Printf("success. %s was made private", name)
 
 		return nil
 	},

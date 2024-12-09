@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"log"
 	"net/http"
 
@@ -37,7 +36,7 @@ var switchToPublicCmd = &cobra.Command{
 
 		name := args[0]
 
-		err = ghPrivacyManager.SwitchRepoToPublicByName(context.Background(), name)
+		err = ghPrivacyManager.SwitchRepoToPublicByName(cmd.Context(), name)
 
 		if err != nil {
 			return err

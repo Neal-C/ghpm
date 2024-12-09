@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/MakeNowJust/heredoc"
@@ -34,7 +33,7 @@ var listAllPrivateRepositoriesCmd = &cobra.Command{
 
 		ghPrivacyManager := ghpm.NewGithubPrivacyManager(token, http.DefaultClient)
 
-		err = ghPrivacyManager.ListAllPrivateRepositories(context.Background())
+		err = ghPrivacyManager.ListAllPrivateRepositories(cmd.Context())
 
 		if err != nil {
 			return err

@@ -339,6 +339,8 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 
 	publicRepositoriesGithubAPIEndpoint := fmt.Sprintf("https://api.github.com/users/%s/repos?visibility=public&per_page=100", self.username)
 
+	readmeRepository := fmt.Sprintf("%s/%s", self.username, self.username)
+
 	for shouldRun {
 
 		publicRepositoriesHTTPRequest, err := http.NewRequestWithContext(ctx, http.MethodGet, publicRepositoriesGithubAPIEndpoint, http.NoBody)
@@ -387,9 +389,10 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 				continue
 			}
 
-			readmeRepository := fmt.Sprintf("%s/%s", self.username, self.username)
-
 			if repo.Fullname == readmeRepository {
+
+				fmt.Printf("dodging the README repository %s because it's a special repository \n", readmeRepository)
+
 				continue
 			}
 
