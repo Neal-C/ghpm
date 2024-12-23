@@ -335,13 +335,11 @@ func (self *GithubPrivacyManager) SwitchRepoToPublicByName(ctx context.Context, 
 
 func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Context) error {
 
-	shouldRun := true
-
 	publicRepositoriesGithubAPIEndpoint := fmt.Sprintf("https://api.github.com/users/%s/repos?visibility=public&per_page=100", self.username)
 
 	readmeRepository := fmt.Sprintf("%s/%s", self.username, self.username)
 
-	for shouldRun {
+	for {
 
 		publicRepositoriesHTTPRequest, err := http.NewRequestWithContext(ctx, http.MethodGet, publicRepositoriesGithubAPIEndpoint, http.NoBody)
 
@@ -452,7 +450,9 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 
 		}
 
-		shouldRun = len(publicRepositories) == 100
+		if len(publicRepositories) != 100 {
+			break
+		}
 
 	}
 
