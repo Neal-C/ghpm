@@ -377,6 +377,12 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 			"private": true,
 		}
 
+		jsonPayload, err := json.Marshal(payload)
+
+		if err != nil {
+			return fmt.Errorf("json.Marshal: %s", err)
+		}
+
 		// TODO : lobby github for a batch request endpoint, so that it can be only 1 HTTP call and not O(n) HTTP calls
 		for _, repo := range publicRepositories {
 
@@ -396,16 +402,15 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 
 			currentPublicRepositoryEndpoint := fmt.Sprintf("https://api.github.com/repos/%s", repo.Fullname)
 
-			jsonPayload, err := json.Marshal(payload)
+			httpPatchRequest, err := http.NewRequestWithContext(ctx, http.MethodPatch, currentPublicRepositoryEndpoint, bytes.NewBuffer(jsonPayload))
 
 			if err != nil {
 
-				log.Printf("error processing %s; err=%s", repo.Fullname, err)
+				log.Printf("error requesting %s: %s \n", repo.Fullname, err)
+				log.Println("skipping", repo.Fullname)
 
 				continue
 			}
-
-			httpPatchRequest, _ := http.NewRequestWithContext(ctx, http.MethodPatch, currentPublicRepositoryEndpoint, bytes.NewBuffer(jsonPayload))
 
 			self.setRequiredHeadersOnGithubRequest(httpPatchRequest)
 
