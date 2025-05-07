@@ -30,7 +30,7 @@ go install github.com/Neal-C/ghpm/cmd/ghpm@latest
 One liner install command (Linux/amd64 & Linux/x86_64) :
 
 ```bash
-curl -s "https://raw.githubusercontent.com/Neal-C/ghpm/main/docs/install.sh" | bash
+curl -s "https://raw.githubusercontent.com/Neal-C/ghpm/main/docs/install.sh" | sudo bash
 ```
 
 Manual install  
