@@ -416,6 +416,8 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 					log.Printf("error requesting %s: %s \n", repo.Fullname, err)
 					log.Println("skipping", repo.Fullname)
 
+					switchWaitGroup.Done()
+
 					return
 				}
 
@@ -427,6 +429,8 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 
 					log.Printf("error processing %s; err=%s", repo.Fullname, err)
 
+					switchWaitGroup.Done()
+
 					return
 				}
 
@@ -437,13 +441,25 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 
 					log.Printf("%s was not switched to private. I suggest to you try from the web version for this one. I am sorry for failing you, please complain to the developer \n", repo.Fullname)
 
+					switchWaitGroup.Done()
+
+					return
+
 				case httpResponse.StatusCode == http.StatusNotFound:
 
 					log.Printf("%s was not found. Did you spell that right? that its name? \n", repo.Fullname)
 
+					switchWaitGroup.Done()
+
+					return
+
 				case httpResponse.StatusCode >= 500:
 
 					log.Printf("github is likely down. Retry. If it does persist: Please complain to the developer. %s not switched \n", repo.Fullname)
+
+					switchWaitGroup.Done()
+
+					return
 
 				}
 
