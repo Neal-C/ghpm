@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"slices"
+	"sync"
 )
 
 // STARS_THRESHOLD : the required numbers of stars on a repository for it be avoided by ghpm
@@ -383,6 +384,8 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 			return fmt.Errorf("json.Marshal: %s", err)
 		}
 
+		switchWaitGroup := new(sync.WaitGroup)
+
 		// TODO : lobby github for a batch request endpoint, so that it can be only 1 HTTP call and not O(n) HTTP calls
 		for _, repo := range publicRepositories {
 
@@ -400,60 +403,59 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 				continue
 			}
 
-			currentPublicRepositoryEndpoint := fmt.Sprintf("https://api.github.com/repos/%s", repo.Fullname)
+			switchWaitGroup.Add(1)
 
-			httpPatchRequest, err := http.NewRequestWithContext(ctx, http.MethodPatch, currentPublicRepositoryEndpoint, bytes.NewBuffer(jsonPayload))
+			go func() {
 
-			if err != nil {
+				currentPublicRepositoryEndpoint := fmt.Sprintf("https://api.github.com/repos/%s", repo.Fullname)
 
-				log.Printf("error requesting %s: %s \n", repo.Fullname, err)
-				log.Println("skipping", repo.Fullname)
+				httpPatchRequest, err := http.NewRequestWithContext(ctx, http.MethodPatch, currentPublicRepositoryEndpoint, bytes.NewBuffer(jsonPayload))
 
-				continue
-			}
+				if err != nil {
 
-			self.setRequiredHeadersOnGithubRequest(httpPatchRequest)
+					log.Printf("error requesting %s: %s \n", repo.Fullname, err)
+					log.Println("skipping", repo.Fullname)
 
-			httpResponse, err := self.httpClient.Do(httpPatchRequest)
+					return
+				}
 
-			if err != nil {
+				self.setRequiredHeadersOnGithubRequest(httpPatchRequest)
 
-				log.Printf("error processing %s; err=%s", repo.Fullname, err)
+				httpResponse, err := self.httpClient.Do(httpPatchRequest)
 
-				continue
-			}
+				if err != nil {
 
-			switch {
-			case httpResponse.StatusCode == http.StatusNotImplemented:
+					log.Printf("error processing %s; err=%s", repo.Fullname, err)
 
-				log.Printf("%s was not switched to private. I suggest to you try from the web version for this one. I am sorry for failing you, please complain to the developer \n", repo.Fullname)
-
-				httpResponse.Body.Close()
-
-				continue
-
-			case httpResponse.StatusCode == http.StatusNotFound:
-
-				log.Printf("%s was not found. Did you spell that right? that its name? \n", repo.Fullname)
+					return
+				}
 
 				httpResponse.Body.Close()
 
-				continue
+				switch {
+				case httpResponse.StatusCode == http.StatusNotImplemented:
 
-			case httpResponse.StatusCode >= 500:
+					log.Printf("%s was not switched to private. I suggest to you try from the web version for this one. I am sorry for failing you, please complain to the developer \n", repo.Fullname)
 
-				log.Printf("github is likely down. Retry. If it does persist: Please complain to the developer \n")
+				case httpResponse.StatusCode == http.StatusNotFound:
 
-				httpResponse.Body.Close()
+					log.Printf("%s was not found. Did you spell that right? that its name? \n", repo.Fullname)
 
-				continue
-			}
+				case httpResponse.StatusCode >= 500:
 
-			log.Printf("%s switched to private. \n", repo.Fullname)
+					log.Printf("github is likely down. Retry. If it does persist: Please complain to the developer. %s not switched \n", repo.Fullname)
 
-			httpResponse.Body.Close()
+				}
+
+				log.Printf("%s switched to private. \n", repo.Fullname)
+
+				switchWaitGroup.Done()
+
+			}()
 
 		}
+
+		switchWaitGroup.Wait()
 
 		if len(publicRepositories) != 100 {
 			break
