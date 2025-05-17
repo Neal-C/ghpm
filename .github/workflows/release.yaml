@@ -11,10 +11,10 @@ jobs:
       # for  creating release & modifying version in-place & pushing tags
       contents: write 
     runs-on: 'ubuntu-latest'
-    # strategy:
-    #   matrix:
-    #     goos: [linux, darwin]
-    #     goarch: [amd64, arm64]
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
     steps:
       - name: 'clone code into github runner'
         uses: actions/checkout@v4
@@ -29,42 +29,24 @@ jobs:
       - name: 'Install dependencies'
         run: go mod download
 
-      # - name: 'Set Binary Name'
-      #   run: |
-      #     BINARY_NAME=${{ github.repository }}-${{ matrix.goos }}-${{ matrix.goarch }}
+      - name: 'Set Binary Name'
+        run: |
+          BINARY_NAME=${{ github.repository }}-${{ matrix.goos }}-${{ matrix.goarch }}
 
-      #     echo "BINARY_NAME=$BINARY_NAME" >> $GITHUB_ENV
+          echo "BINARY_NAME=$BINARY_NAME" >> $GITHUB_ENV
 
-      # - name: 'Release build'
-      #   run: |
-      #     GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o ${{ env.BINARY_NAME }} ./cmd/ghpm/main.go
-
-      - name: 'linux-amd64 build'
-        run : |
-          GOOS=linux GOARCH=amd64 go build -v -o ghpm-linux-amd64 ./cmd/ghpm/main.go
-
-      - name: 'linux-arm64 build'
-        run : |
-          GOOS=linux GOARCH=arm64 go build -v -o ghpm-linux-arm64 ./cmd/ghpm/main.go
-
-      - name: 'darwin-amd64 build'
-        run : |
-          GOOS=darwin GOARCH=amd64 go build -v -o ghpm-darwin-amd64 ./cmd/ghpm/main.go
-
-      - name: 'darwin-arm64 build'
-        run : |
-          GOOS=darwin GOARCH=arm64 go build -v -o ghpm-darwin-arm64 ./cmd/ghpm/main.go
+      - name: 'Release build'
+        run: |
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o ${{ env.BINARY_NAME }} ./cmd/ghpm/main.go
 
       - name: 'github release'
-        uses: softprops/action-gh-release@v2.2.2
+        # v2.2.2 was a broken release that made the matrix fail
+        # hardcoding version to 2.2.1 for now
+        uses: softprops/action-gh-release@v2.2.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: |
-            ghpm-linux-amd64
-            ghpm-linux-arm64
-            ghpm-darwin-amd64
-            ghpm-darwin-arm64
+          files: ${{ env.BINARY_NAME }}
           make_latest: 'true'
           generate_release_notes: true
           token: ${{ env.GITHUB_TOKEN }}
