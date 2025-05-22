@@ -35,6 +35,8 @@ type GithubRepository struct {
 	Fullname string `json:"full_name"`
 
 	Private bool `json:"private"`
+
+	IsFork bool `json:"fork"`
 }
 
 func Prettyfy(data any) (string, error) {
@@ -389,6 +391,13 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 		// TODO : lobby github for a batch request endpoint, so that it can be only 1 HTTP call and not O(n) HTTP calls
 		for _, repo := range publicRepositories {
 
+			if repo.Fullname == readmeRepository {
+
+				fmt.Printf("skipped %s because it's a special repository \n", readmeRepository)
+
+				continue
+			}
+
 			if repo.Stars >= STARS_THRESHOLD {
 
 				log.Printf("repository %s cannot be switched to private by ghpm because it has more than %d stars -> (%d) \n", repo.Fullname, STARS_THRESHOLD, repo.Stars)
@@ -396,9 +405,9 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 				continue
 			}
 
-			if repo.Fullname == readmeRepository {
+			if repo.IsFork {
 
-				fmt.Printf("dodging the README repository %s because it's a special repository \n", readmeRepository)
+				log.Printf("skipped %s because it's a fork", repo.Fullname)
 
 				continue
 			}
@@ -441,29 +450,18 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 
 					log.Printf("%s was not switched to private. I suggest to you try from the web version for this one. I am sorry for failing you, please complain to the developer \n", repo.Fullname)
 
-					switchWaitGroup.Done()
-
-					return
-
 				case httpResponse.StatusCode == http.StatusNotFound:
 
 					log.Printf("%s was not found. Did you spell that right? that its name? \n", repo.Fullname)
-
-					switchWaitGroup.Done()
-
-					return
 
 				case httpResponse.StatusCode >= 500:
 
 					log.Printf("github is likely down. Retry. If it does persist: Please complain to the developer. %s not switched \n", repo.Fullname)
 
-					switchWaitGroup.Done()
+				default:
 
-					return
-
+					log.Printf("%s switched to private. \n", repo.Fullname)
 				}
-
-				log.Printf("%s switched to private. \n", repo.Fullname)
 
 				switchWaitGroup.Done()
 
