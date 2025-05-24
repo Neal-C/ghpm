@@ -407,7 +407,7 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 
 			if repo.IsFork {
 
-				log.Printf("skipped %s because it's a fork", repo.Fullname)
+				log.Printf("skipped %s because it's a fork \n", repo.Fullname)
 
 				continue
 			}

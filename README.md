@@ -51,14 +51,12 @@ chmod +x ghpm
 move to /usr/local/bin/  
 ```bash
 # ~
-# might require to be prefixed with sudo: sudo mv ghpm /usr/local/bin/
 mv ghpm /usr/local/bin/
 ```
 
 Uninstall :  
 ```bash
 # ~
-# might require to be prefixed with sudo: sudo rm /usr/local/bin/ghpm
 rm /usr/local/bin/ghpm
 ```
 
@@ -70,15 +68,11 @@ ghpm --help
 ```
 
 ```bash
-# turns all your repositories private 
+# turns all your repositories private (except starred repos and forks)
 ghpm thanos_snap
 ```
 
 ## Roadmap
-
-- [ ] lobby github for ghpm features to included in gh CLI so that I don't have to maintain this repository for free forever
-
-- [ ] lobby github for a batch request endpoint, so that it can be only 1 HTTP call and not O(n) HTTP calls
 
 - [x] list your private repos
 
@@ -91,6 +85,10 @@ ghpm thanos_snap
 - [x] switch 1 repository to public
 
 - [x] shell installation script
+
+- [ ] lobby github for ghpm features to included in gh CLI so that I don't have to maintain this repository for free forever
+
+- [ ] lobby github for a batch request endpoint, so that it can be only 1 HTTP call and not O(n) HTTP calls
 
 if time and will :
 
