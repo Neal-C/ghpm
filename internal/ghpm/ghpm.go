@@ -386,7 +386,7 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 			return fmt.Errorf("json.Marshal: %s", err)
 		}
 
-		switchWaitGroup := new(sync.WaitGroup)
+		var switchWaitGroup sync.WaitGroup
 
 		// TODO : lobby github for a batch request endpoint, so that it can be only 1 HTTP call and not O(n) HTTP calls
 		for _, repo := range publicRepositories {
@@ -415,6 +415,8 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 			switchWaitGroup.Add(1)
 
 			go func() {
+
+				defer switchWaitGroup.Done()
 
 				currentPublicRepositoryEndpoint := fmt.Sprintf("https://api.github.com/repos/%s", repo.Fullname)
 
@@ -462,8 +464,6 @@ func (self *GithubPrivacyManager) SwitchAllRepositoriesToPrivate(ctx context.Con
 
 					log.Printf("%s switched to private. \n", repo.Fullname)
 				}
-
-				switchWaitGroup.Done()
 
 			}()
 
