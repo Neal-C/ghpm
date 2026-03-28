@@ -1,5 +1,8 @@
 # A tool to manage privacy on github
 
+> [!NOTE]
+> Not unmaintained ! It works so I'm done
+
 > [!WARNING]
 > Turning a starred repository into a private repository will lose all the stars  
 > Current forks will remain public and will be detached from the repository.
@@ -71,6 +74,15 @@ ghpm --help
 # turns all your repositories private (except starred repos and forks)
 ghpm thanos_snap
 ```
+
+## Only turn 1 repository private
+
+The github cli already supports turning 1 repository private: https://cli.github.com/manual/gh_repo_edit
+
+```bash
+gh repo edit myusername/myrepository --visibility private --accept-visibility-change-consequences
+```
+
 
 ## Roadmap
 

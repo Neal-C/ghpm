@@ -50,7 +50,9 @@ func Prettyfy(data any) (string, error) {
 func ToFullname(repositories []GithubRepository) iter.Seq[string] {
 	return func(yield func(string) bool) {
 		for _, repo := range repositories {
-			yield(repo.Fullname)
+			if !yield(repo.Fullname) {
+				return
+			}
 		}
 	}
 }
