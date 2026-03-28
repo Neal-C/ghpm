@@ -8,13 +8,8 @@ on:
 jobs:
   ghpm_build:
     permissions:
-      # for  creating release & modifying version in-place & pushing tags
       contents: write 
     runs-on: 'ubuntu-latest'
-    strategy:
-      matrix:
-        goos: [linux, darwin]
-        goarch: [amd64, arm64]
     steps:
       - name: 'clone code into github runner'
         uses: actions/checkout@v4
@@ -29,24 +24,32 @@ jobs:
       - name: 'Install dependencies'
         run: go mod download
 
-      - name: 'Set Binary Name'
+      - name: 'build linux/amd64'
         run: |
-          BINARY_NAME=${{ github.repository }}-${{ matrix.goos }}-${{ matrix.goarch }}
+          GOOS=linux GOARCH=amd64 go build -v -o ${{ github.repository }}-linux-amd64 ./cmd/ghpm/main.go
 
-          echo "BINARY_NAME=$BINARY_NAME" >> $GITHUB_ENV
-
-      - name: 'Release build'
+      - name: 'build linux/arm64'
         run: |
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o ${{ env.BINARY_NAME }} ./cmd/ghpm/main.go
+          GOOS=linux GOARCH=arm64 go build -v -o ${{ github.repository }}-linux-arm64 ./cmd/ghpm/main.go
+
+      - name: 'build darwin/amd64'
+        run: |
+          GOOS=darwin GOARCH=amd64 go build -v -o ${{ github.repository }}-darwin-amd64 ./cmd/ghpm/main.go
+
+      - name: 'build darwin/arm64'
+        run: |
+          GOOS=darwin GOARCH=arm64 go build -v -o ${{ github.repository }}-darwin-arm64 ./cmd/ghpm/main.go
 
       - name: 'github release'
-        # v2.2.2 was a broken release that made the matrix fail
-        # hardcoding version to 2.2.1 for now
-        uses: softprops/action-gh-release@v2.2.1
+        uses: softprops/action-gh-release@v2.6.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: ${{ env.BINARY_NAME }}
+          files: |
+            ${{ github.repository }}-linux-amd64
+            ${{ github.repository }}-linux-arm64
+            ${{ github.repository }}-darwin-amd64
+            ${{ github.repository }}-darwin-arm64
           make_latest: 'true'
           generate_release_notes: true
           token: ${{ env.GITHUB_TOKEN }}
